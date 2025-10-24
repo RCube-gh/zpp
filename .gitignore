@@ -1,0 +1,12 @@
+# Ignore runtime database
+data/zpp.db
+
+# Optional: ignore any backups or temp files
+*.db~
+
+# Ignore compiled binary
+zpp
+
+# Ignore object files if you ever compile separately
+*.o
+
