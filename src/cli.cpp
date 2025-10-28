@@ -11,22 +11,25 @@ int CLI::run(int argc, char* argv[]) {
     Searcher searcher(db.getEntries());
 
     // --init: print shell hook
-    if (argc > 1 && std::string(argv[1]) == "--init") {
-        std::cout << R"SH(
+	//
+	if (argc > 1 && std::string(argv[1]) == "--init") {
+		std::cout << R"SH(
+# zpp zsh hook
 _zpp_hook() {
-    (zpp --add "$(pwd)" >/dev/null 2>&1) &
-	disown
-
+(set +m; zpp --add "$(pwd)" >/dev/null 2>&1 &)
 }
 
-if [[ "$PROMPT_COMMAND" != *"_zpp_hook"* ]]; then
-    PROMPT_COMMAND="_zpp_hook; $PROMPT_COMMAND"
+# append hook if not already set
+if [[ -z "$precmd_functions" ]] || [[ "${precmd_functions[(r)_zpp_hook]}" != "_zpp_hook" ]]; then
+precmd_functions+=(_zpp_hook)
 fi
 
-alias z++='zpp'
-)SH";
-        return 0;
-        }
+# define alias for jumping
+alias z++='cd "$(zpp "$@")"'
+		)SH";
+		return 0;
+	}
+
 
 
     // --add: auto record current dir
