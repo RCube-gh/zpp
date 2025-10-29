@@ -156,10 +156,6 @@ double frecent(double rank, std::time_t last_access) {
 
 See [INSTALL_COMPLETION.md](INSTALL_COMPLETION.md) for detailed troubleshooting steps.
 
-## License
-
-[Add your license here]
-
 ## Credits
 
 Inspired by [z](https://github.com/rupa/z) and [autojump](https://github.com/wting/autojump).
