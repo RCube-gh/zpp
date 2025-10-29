@@ -44,3 +44,32 @@ zpp_main() {
     esac
 }
 
+# ---- completion function for z ----
+_zpp_main_completion() {
+    local -a completions
+    local query="${words[2]}"
+    
+    # Handle special commands
+    if [[ "$query" == --* ]]; then
+        completions=(--list --top --help)
+        compadd -V options -a completions
+        return
+    fi
+    
+    # Get directory completions from zpp
+    if [[ -n "$query" ]]; then
+        completions=("${(@f)$("$ZPP_BIN" --complete "$query" 2>/dev/null)}")
+    else
+        completions=("${(@f)$("$ZPP_BIN" --complete "" 2>/dev/null)}")
+    fi
+    
+    # Offer completions to zsh
+    if [[ ${#completions[@]} -gt 0 ]]; then
+        compadd -U -V directories -a completions
+    fi
+}
+
+# Register completion for z and zpp_main
+compdef _zpp_main_completion zpp_main
+compdef _zpp_main_completion z
+
