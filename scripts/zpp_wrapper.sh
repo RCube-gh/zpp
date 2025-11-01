@@ -33,6 +33,11 @@ zpp_main() {
             echo "  (auto record when cd)"
             ;;
         *)
+			abs_path="$(realpath -m "$1" 2>/dev/null)"
+			if [[ -n "$abs_path" && -d "$abs_path" ]]; then
+				builtin cd "$abs_path"
+				return
+			fi
             local dest
             dest="$("$ZPP_BIN" "$@")"
             if [[ -n "$dest" && -d "$dest" ]]; then

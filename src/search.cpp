@@ -19,6 +19,7 @@ string Searcher::bestMatch(const string& query) const {
     string lower_query = toLower(query);
     string cwd = fs::current_path().string();
 
+    // First: local subdirectories
     for (auto& p : fs::directory_iterator(cwd)) {
         if (p.is_directory()) {
             string name = p.path().filename().string();
@@ -27,22 +28,38 @@ string Searcher::bestMatch(const string& query) const {
         }
     }
 
-    vector<Entry> matches;
-    for (auto& e : entries) {
-        if (toLower(e.path).find(lower_query) != string::npos)
-            matches.push_back(e);
+    // Split matches by precision
+    vector<Entry> exact_matches;
+    vector<Entry> partial_matches;
+
+    for (const auto& e : entries) {
+        string path_lower = toLower(e.path);
+        string last = fs::path(e.path).filename().string();
+
+        if (toLower(last) == lower_query) {
+            exact_matches.push_back(e);
+        } else if (path_lower.find(lower_query) != string::npos) {
+            partial_matches.push_back(e);
+        }
     }
 
-    if (matches.empty()) return "";
+    auto sort_by_frecent = [](const Entry& a, const Entry& b) {
+        return frecent(a.rank, a.last_access) > frecent(b.rank, b.last_access);
+    };
 
-    sort(matches.begin(), matches.end(),
-         [](const Entry& a, const Entry& b) {
-             return frecent(a.rank, a.last_access) >
-                    frecent(b.rank, b.last_access);
-         });
+    if (!exact_matches.empty()) {
+        sort(exact_matches.begin(), exact_matches.end(), sort_by_frecent);
+        return exact_matches.front().path;
+    }
 
-    return matches.front().path;
+    if (!partial_matches.empty()) {
+        sort(partial_matches.begin(), partial_matches.end(), sort_by_frecent);
+        return partial_matches.front().path;
+    }
+
+    return "";
 }
+
 
 vector<string> Searcher::getCompletions(const string& query, int limit) const {
     string lower_query = toLower(query);
