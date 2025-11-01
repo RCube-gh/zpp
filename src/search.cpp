@@ -67,11 +67,27 @@ vector<string> Searcher::getCompletions(const string& query, int limit) const {
             matches.push_back(e);
     }
 
-    sort(matches.begin(), matches.end(),
-         [](const Entry& a, const Entry& b) {
-             return frecent(a.rank, a.last_access) >
-                    frecent(b.rank, b.last_access);
-         });
+	sort(matches.begin(), matches.end(),
+		 [&query](const Entry& a, const Entry& b) {
+			 auto score = [&](const Entry& e) {
+				 double base = frecent(e.rank, e.last_access);
+				 std::string q = query;
+				 std::string path = e.path;
+
+				 // extract last dir name
+				 std::string last = fs::path(path).filename().string();
+
+				 double bonus = 0.0;
+				 if (toLower(last) == toLower(q)) {
+						bonus = 10000.0;  //precise match
+				 } else if (toLower(path).find("/" + toLower(q)) != std::string::npos) {
+						bonus = 100.0;  // directory match
+				 }
+
+				 return base + bonus;
+			 };
+			 return score(a) > score(b);
+     });
 
     for (auto& m : matches) {
         if (results.size() >= static_cast<size_t>(limit)) break;
