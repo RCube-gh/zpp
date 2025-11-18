@@ -61,7 +61,7 @@ _zpp_completion() {
 }
 
 # Register completion
-compdef _zpp_completion z++
+compdef _zpp_completion 'z++'
 		)SH";
 		return 0;
 	}
@@ -76,10 +76,10 @@ compdef _zpp_completion z++
         return 0;
     }
 
-    // --complete: return list of matching directories for tab completion
+    // --complete: return best match for tab completion
     if (argc > 1 && std::string(argv[1]) == "--complete") {
         std::string keyword = (argc > 2) ? argv[2] : "";
-        auto completions = searcher.getCompletions(keyword);
+        auto completions = searcher.bestMatch(keyword);
         for (const auto& path : completions) {
             std::cout << path << "\n";
         }
@@ -92,8 +92,12 @@ compdef _zpp_completion z++
         return 1;
     }
 
-    std::string keyword = argv[1];
-    std::string dest = searcher.bestMatch(keyword);
+	std::string keywords;
+	for(int i=1;i<argc;++i){
+		if(i>1)keywords+=" ";
+		keywords+=argv[i];
+	}
+	std::string dest = searcher.bestMatch(keywords);
 
     if (dest.empty()) {
         std::cerr << "No match found.\n";
